@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quoteapp
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '3000:3000'
+      - '5173:5173'
+      - '80:80'
+    env_file:
+      - .env
+    networks:
+      - app-net
+    volumes:
+      - '.:/rails'
+    depends_on:
+        - pg_sql
+        - mailhog
+  pg_sql:
+    env_file:
+        - .env
+    image: postgres:14.3-alpine
+    container_name: quoteappdb
+    environment:
+      POSTGRES_DB: ${APP_DATABASE_NAME}
+      POSTGRES_USER: ${APP_DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${APP_DATABASE_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5432:5432
+    networks:
+      - app-net
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '8025:8025'
+      - '1025:1025'
+    networks:
+      - app-net
+networks:
+  app-net:
+      driver: bridge
+volumes:
+  pg_data:
+    driver: local
