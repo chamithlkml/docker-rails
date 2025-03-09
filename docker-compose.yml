@@ -19,6 +19,7 @@ services:
     depends_on:
         - pg_sql
         - mailhog
+        - chrome
   pg_sql:
     env_file:
         - .env
@@ -43,6 +44,18 @@ services:
       - '1025:1025'
     networks:
       - app-net
+  chrome:
+    image: selenium/standalone-chrome-debug
+    container_name: chrome
+    platform: linux/amd64
+    shm_size: 2gb
+    ports:
+      - '4444:4444'
+      - '7900:7900'
+    networks:
+      - app-net
+    volumes:
+      - /dev/shm:/dev/shm
 networks:
   app-net:
       driver: bridge
